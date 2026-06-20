@@ -5,19 +5,14 @@ import { CallForm } from "./components/CallForm";
 import { CallStatusIndicator } from "./components/CallStatusIndicator";
 import { CaseSummary } from "./components/CaseSummary";
 import { TranscriptAccordion } from "./components/TranscriptAccordion";
-import { useCallSession } from "./features/calls/useCallSession";
-import { e164Schema, type CallCase } from "../shared/callSchema";
-
-function normalizePhoneNumber(value: string) {
-  return value.replace(/[\s()-]/g, "");
-}
+import { useBrowserVoiceSession } from "./features/voice/useBrowserVoiceSession";
+import type { CallCase } from "../shared/callSchema";
 
 export default function App() {
   const [cases, setCases] = useState<CallCase[]>([]);
   const [casesError, setCasesError] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const call = useCallSession();
+  const voiceSession = useBrowserVoiceSession();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,41 +32,36 @@ export default function App() {
     () => cases.find((item) => item.id === selectedCaseId) ?? null,
     [cases, selectedCaseId],
   );
-  const normalizedPhone = normalizePhoneNumber(phoneNumber);
-  const phoneIsValid = e164Schema.safeParse(normalizedPhone).success;
-  const canSubmit = Boolean(selectedCase && phoneIsValid && !call.isActive);
+  const canSubmit = Boolean(selectedCase && !voiceSession.isActive);
 
   return (
     <div className="min-h-screen bg-canvas text-navy">
       <main className="mx-auto min-h-screen w-full max-w-[1180px] px-5 pb-12 sm:px-8 lg:px-10">
         <AppHeader />
 
-        <section className="pt-7" aria-label="Call setup">
+        <section className="pt-7" aria-label="Voice test setup">
           <CallForm
             cases={cases}
             selectedCaseId={selectedCaseId}
-            phoneNumber={phoneNumber}
-            disabled={call.isActive}
+            disabled={voiceSession.isActive}
             canSubmit={canSubmit}
             onCaseChange={setSelectedCaseId}
-            onPhoneChange={setPhoneNumber}
-            onSubmit={() => void call.startCall(selectedCaseId, normalizedPhone)}
+            onSubmit={() => selectedCase && void voiceSession.startSession(selectedCase)}
           />
           {casesError && <p className="mt-3 text-sm text-red">{casesError}</p>}
           <CaseSummary callCase={selectedCase} />
         </section>
 
-        <CallStatusIndicator phase={call.phase} elapsedSeconds={call.elapsedSeconds} error={call.error} />
+        <CallStatusIndicator
+          phase={voiceSession.phase}
+          elapsedSeconds={voiceSession.elapsedSeconds}
+          error={voiceSession.error}
+          isSpeaking={voiceSession.isSpeaking}
+          onEnd={voiceSession.endSession}
+        />
 
-        {call.details?.status === "done" && (
-          <>
-            <TranscriptAccordion transcript={call.details.transcript} />
-            {call.details.durationSeconds !== null && (
-              <p className="mt-4 text-center text-xs font-medium text-slate-400">
-                Duration {Math.floor(call.details.durationSeconds / 60)}m {call.details.durationSeconds % 60}s
-              </p>
-            )}
-          </>
+        {voiceSession.phase === "done" && (
+          <TranscriptAccordion transcript={voiceSession.transcript} userLabel="You" />
         )}
       </main>
     </div>

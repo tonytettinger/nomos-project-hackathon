@@ -41,6 +41,20 @@ export const callStatusSchema = z.enum([
   "failed",
 ]);
 
+export const telephonyStatusSchema = z.enum([
+  "queued",
+  "initiated",
+  "ringing",
+  "in-progress",
+  "completed",
+  "busy",
+  "failed",
+  "no-answer",
+  "canceled",
+]);
+
+export type TelephonyStatus = z.infer<typeof telephonyStatusSchema>;
+
 export type CallStatus = z.infer<typeof callStatusSchema>;
 
 export type TranscriptTurn = {
@@ -56,8 +70,13 @@ export type NormalizedCallDetails = {
   durationSeconds: number | null;
   startedAt: string | null;
   structuredResult: Record<string, unknown> | null;
+  telephonyStatus: TelephonyStatus | null;
   error: string | null;
 };
+
+export const cancelCallSchema = z.object({
+  callSid: z.string().regex(/^CA[0-9a-fA-F]{32}$/, "A valid Twilio call SID is required"),
+});
 
 const unresolvedValuePattern = /^(?:null|undefined|n\/a|\{\{.*\}\}|\[.*\])$/i;
 

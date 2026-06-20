@@ -4,7 +4,7 @@ export function AppHeader() {
       <div className="flex items-center gap-5">
         <span className="text-[22px] font-bold tracking-[-0.04em] text-navy">Nomos</span>
         <span className="h-7 w-px bg-slate-300" aria-hidden="true" />
-        <span className="text-[15px] font-medium text-navy">Clearing calls</span>
+        <span className="text-[15px] font-medium text-navy">Agent voice test</span>
       </div>
     </header>
   );

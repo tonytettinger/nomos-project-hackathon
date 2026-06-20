@@ -9,6 +9,7 @@ type MockConversation = {
   startedAt: number;
   toNumber: string;
   caseId: string;
+  cancelled: boolean;
 };
 
 const transcript: TranscriptTurn[] = [
@@ -35,6 +36,7 @@ const transcript: TranscriptTurn[] = [
 ];
 
 export class MockCallProvider implements CallProvider {
+  readonly canCancel = true;
   private readonly conversations = new Map<string, MockConversation>();
 
   async initiateCall(input: InitiateProviderCallInput): Promise<InitiateProviderCallResult> {
@@ -43,22 +45,24 @@ export class MockCallProvider implements CallProvider {
       startedAt: Date.now(),
       toNumber: input.toNumber,
       caseId: input.callCase.id,
+      cancelled: false,
     });
 
     return {
       conversationId,
-      callSid: `demo-call-${crypto.randomUUID()}`,
+      callSid: `CA${crypto.randomUUID().replaceAll("-", "")}`,
       status: "initiated",
     };
   }
 
-  async getCall(conversationId: string): Promise<NormalizedCallDetails> {
+  async getCall({ conversationId }: { conversationId: string; callSid: string | null }): Promise<NormalizedCallDetails> {
     const conversation = this.conversations.get(conversationId);
     if (!conversation) throw new Error("Demo conversation not found");
 
     const elapsedSeconds = Math.floor((Date.now() - conversation.startedAt) / 1000);
-    const status =
-      elapsedSeconds < 2
+    const status = conversation.cancelled
+      ? "failed"
+      : elapsedSeconds < 2
         ? "initiated"
         : elapsedSeconds < 7
           ? "in-progress"
@@ -73,7 +77,20 @@ export class MockCallProvider implements CallProvider {
       durationSeconds: status === "done" ? 24 : elapsedSeconds,
       startedAt: new Date(conversation.startedAt).toISOString(),
       structuredResult: null,
-      error: null,
+      telephonyStatus: conversation.cancelled
+        ? "canceled"
+        : status === "in-progress"
+          ? "in-progress"
+          : status === "done"
+            ? "completed"
+            : "ringing",
+      error: conversation.cancelled ? "Call cancelled by user." : null,
     };
+  }
+
+  async cancelCall({ conversationId }: { conversationId: string; callSid: string }): Promise<void> {
+    const conversation = this.conversations.get(conversationId);
+    if (!conversation) throw new Error("Demo conversation not found");
+    conversation.cancelled = true;
   }
 }

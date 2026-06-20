@@ -43,6 +43,26 @@ describe("ElevenLabsProvider", () => {
       conversation_initiation_client_data: { dynamic_variables: callCase },
     });
   });
+
+  it("accepts the snake-case Twilio call SID returned by some provider responses", async () => {
+    const callSid = `CA${"a".repeat(32)}`;
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ conversation_id: "conv-2", call_sid: callSid }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const provider = new ElevenLabsProvider({
+      apiKey: "secret",
+      agentId: "agent-1",
+      phoneNumberId: "phone-1",
+      fetchImpl,
+    });
+
+    await expect(provider.initiateCall({ toNumber: "+493012345678", callCase })).resolves.toMatchObject({
+      callSid,
+    });
+  });
 });
 
 describe("normalizeConversation", () => {
@@ -70,6 +90,20 @@ describe("normalizeConversation", () => {
         { role: "agent", message: "Hello", timeInCallSeconds: 0 },
         { role: "user", message: "Found it", timeInCallSeconds: 4 },
       ],
+    });
+  });
+
+  it("turns a no-answer carrier result into a clear terminal failure", () => {
+    expect(
+      normalizeConversation(
+        { conversation_id: "conv-2", status: "initiated" },
+        "fallback",
+        "no-answer",
+      ),
+    ).toMatchObject({
+      status: "failed",
+      telephonyStatus: "no-answer",
+      error: "The destination did not answer.",
     });
   });
 });

@@ -11,7 +11,23 @@ export type InitiateProviderCallResult = {
   status: "initiated";
 };
 
+export type GetProviderCallInput = {
+  conversationId: string;
+  callSid: string | null;
+};
+
+export type CancelProviderCallInput = {
+  conversationId: string;
+  callSid: string;
+};
+
 export interface CallProvider {
+  readonly canCancel: boolean;
   initiateCall(input: InitiateProviderCallInput): Promise<InitiateProviderCallResult>;
-  getCall(conversationId: string): Promise<NormalizedCallDetails>;
+  getCall(input: GetProviderCallInput): Promise<NormalizedCallDetails>;
+  cancelCall(input: CancelProviderCallInput): Promise<void>;
+}
+
+export interface VoiceSessionProvider {
+  createConversationToken(): Promise<string>;
 }

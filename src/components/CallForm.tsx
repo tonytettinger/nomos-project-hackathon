@@ -1,26 +1,22 @@
-import { Phone } from "lucide-react";
+import { Laptop, Mic } from "lucide-react";
 import type { FormEvent } from "react";
 import type { CallCase } from "../../shared/callSchema";
 
 type CallFormProps = {
   cases: CallCase[];
   selectedCaseId: string;
-  phoneNumber: string;
   disabled: boolean;
   canSubmit: boolean;
   onCaseChange: (caseId: string) => void;
-  onPhoneChange: (number: string) => void;
   onSubmit: () => void;
 };
 
 export function CallForm({
   cases,
   selectedCaseId,
-  phoneNumber,
   disabled,
   canSubmit,
   onCaseChange,
-  onPhoneChange,
   onSubmit,
 }: CallFormProps) {
   const submit = (event: FormEvent) => {
@@ -29,23 +25,15 @@ export function CallForm({
   };
 
   return (
-    <form className="grid gap-4 md:grid-cols-[minmax(220px,0.8fr)_minmax(280px,1.2fr)_128px]" onSubmit={submit}>
-      <label className="grid gap-2 text-xs font-semibold text-slate-600">
-        Destination phone number
-        <span className="control-shell">
-          <Phone className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-          <input
-            className="min-w-0 flex-1 bg-transparent text-sm font-medium text-navy outline-none placeholder:text-slate-400"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+49 30 12345678"
-            value={phoneNumber}
-            disabled={disabled}
-            onChange={(event) => onPhoneChange(event.target.value)}
-          />
+    <form className="grid gap-4 md:grid-cols-[minmax(260px,0.9fr)_minmax(280px,1.1fr)_148px]" onSubmit={submit}>
+      <div className="grid gap-2 text-xs font-semibold text-slate-600">
+        Connection
+        <span className="control-shell control-shell--fixed" aria-label="ElevenLabs browser voice connection">
+          <Laptop className="h-4 w-4 shrink-0 text-blue" aria-hidden="true" />
+          <span className="min-w-0 flex-1 text-sm font-medium text-navy">ElevenLabs browser voice</span>
+          <Mic className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
         </span>
-      </label>
+      </div>
 
       <label className="grid gap-2 text-xs font-semibold text-slate-600">
         Case
@@ -68,7 +56,7 @@ export function CallForm({
         type="submit"
         disabled={!canSubmit}
       >
-        Start call
+        Start voice test
       </button>
     </form>
   );

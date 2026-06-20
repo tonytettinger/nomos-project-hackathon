@@ -6,6 +6,13 @@ type InitiateCallResponse = {
   status: "initiated";
 };
 
+export type ApiHealth = {
+  ok: boolean;
+  providerMode: "elevenlabs" | "mock";
+  cancelEnabled: boolean;
+  browserVoiceEnabled: boolean;
+};
+
 async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   const response = await fetch(input, init);
   const payload = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -22,6 +29,17 @@ export async function fetchCases(signal?: AbortSignal): Promise<CallCase[]> {
   return payload.cases;
 }
 
+export async function fetchHealth(signal?: AbortSignal): Promise<ApiHealth> {
+  return requestJson<ApiHealth>("/api/health", { signal });
+}
+
+export async function fetchConversationToken(): Promise<string> {
+  const payload = await requestJson<{ token: string }>("/api/agent/session-token", {
+    method: "POST",
+  });
+  return payload.token;
+}
+
 export async function initiateCall(caseId: string, toNumber: string): Promise<InitiateCallResponse> {
   return requestJson<InitiateCallResponse>("/api/calls", {
     method: "POST",
@@ -30,8 +48,20 @@ export async function initiateCall(caseId: string, toNumber: string): Promise<In
   });
 }
 
-export async function fetchCall(conversationId: string, signal?: AbortSignal) {
-  return requestJson<NormalizedCallDetails>(`/api/calls/${encodeURIComponent(conversationId)}`, {
+export async function fetchCall(conversationId: string, callSid: string | null, signal?: AbortSignal) {
+  const query = callSid ? `?callSid=${encodeURIComponent(callSid)}` : "";
+  return requestJson<NormalizedCallDetails>(`/api/calls/${encodeURIComponent(conversationId)}${query}`, {
     signal,
   });
+}
+
+export async function cancelCall(conversationId: string, callSid: string) {
+  return requestJson<{ success: true; message: string }>(
+    `/api/calls/${encodeURIComponent(conversationId)}/cancel`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ callSid }),
+    },
+  );
 }

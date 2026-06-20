@@ -1,14 +1,15 @@
 import cors from "cors";
 import express from "express";
 import { ZodError } from "zod";
-import { initiateCallSchema, type CallCase } from "../shared/callSchema";
+import { cancelCallSchema, initiateCallSchema, type CallCase } from "../shared/callSchema";
 import { ProviderRequestError } from "./elevenLabsProvider";
-import type { CallProvider } from "./types";
+import type { CallProvider, VoiceSessionProvider } from "./types";
 
 export type AppDependencies = {
   cases: CallCase[];
   provider: CallProvider;
   providerMode: "elevenlabs" | "mock";
+  voiceSessionProvider?: VoiceSessionProvider;
 };
 
 export class CaseNotFoundError extends Error {
@@ -25,30 +26,52 @@ export function resolveCallRequest(cases: CallCase[], body: unknown) {
   return { input, callCase };
 }
 
-export function createApp({ cases, provider, providerMode }: AppDependencies) {
+export function createApp({ cases, provider, providerMode, voiceSessionProvider }: AppDependencies) {
   const app = express();
 
   app.use(cors({ origin: true }));
   app.use(express.json({ limit: "32kb" }));
 
   app.get("/api/health", (_request, response) => {
-    response.json({ ok: true, providerMode });
+    response.json({
+      ok: true,
+      providerMode,
+      cancelEnabled: provider.canCancel,
+      browserVoiceEnabled: Boolean(voiceSessionProvider),
+    });
   });
 
   app.get("/api/cases", (_request, response) => {
     response.json({ cases });
   });
 
+  app.post("/api/agent/session-token", async (_request, response, next) => {
+    try {
+      if (!voiceSessionProvider) {
+        response.status(503).json({ error: "ElevenLabs browser voice is not configured" });
+        return;
+      }
+      const token = await voiceSessionProvider.createConversationToken();
+      response.json({ token });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/calls", async (request, response, next) => {
     try {
       const { input, callCase } = resolveCallRequest(cases, request.body);
 
-      response.status(201).json(
-        await provider.initiateCall({
-          toNumber: input.toNumber,
-          callCase,
-        }),
-      );
+      const result = await provider.initiateCall({
+        toNumber: input.toNumber,
+        callCase,
+      });
+      console.info("[calls] initiated", {
+        caseId: callCase.id,
+        conversationId: result.conversationId,
+        callSid: result.callSid,
+      });
+      response.status(201).json(result);
     } catch (error) {
       next(error);
     }
@@ -56,7 +79,24 @@ export function createApp({ cases, provider, providerMode }: AppDependencies) {
 
   app.get("/api/calls/:conversationId", async (request, response, next) => {
     try {
-      response.json(await provider.getCall(request.params.conversationId));
+      const callSid = typeof request.query.callSid === "string" ? request.query.callSid : null;
+      const result = await provider.getCall({ conversationId: request.params.conversationId, callSid });
+      console.info("[calls] status", {
+        conversationId: result.conversationId,
+        status: result.status,
+        telephonyStatus: result.telephonyStatus,
+      });
+      response.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/calls/:conversationId/cancel", async (request, response, next) => {
+    try {
+      const { callSid } = cancelCallSchema.parse(request.body);
+      await provider.cancelCall({ conversationId: request.params.conversationId, callSid });
+      response.json({ success: true, message: "Call cancelled" });
     } catch (error) {
       next(error);
     }
@@ -74,13 +114,14 @@ export function createApp({ cases, provider, providerMode }: AppDependencies) {
     }
 
     if (error instanceof ProviderRequestError) {
-      response.status(error.statusCode >= 400 && error.statusCode < 500 ? error.statusCode : 502).json({
+      response.status(error.statusCode >= 400 && error.statusCode <= 599 ? error.statusCode : 502).json({
         error: error.message,
       });
       return;
     }
 
     const message = error instanceof Error ? error.message : "Unexpected server error";
+    console.error("[api] request failed", { message });
     response.status(500).json({ error: message });
   });
 

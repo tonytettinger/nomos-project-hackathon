@@ -10,4 +10,14 @@ export default defineConfig({
       "/api": "http://127.0.0.1:8787",
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("livekit-client")) return "livekit";
+          if (id.includes("@elevenlabs")) return "elevenlabs";
+        },
+      },
+    },
+  },
 });

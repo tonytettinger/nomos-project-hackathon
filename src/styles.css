@@ -61,6 +61,10 @@ select.control-shell:disabled {
   color: #94a3b8;
 }
 
+.control-shell--fixed {
+  background: #f8fafc;
+}
+
 .case-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -159,6 +163,16 @@ select.control-shell:disabled {
   background: #fff7f7;
 }
 
+.status-orb--stopped {
+  border-color: #94a3b8;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.status-orb--stopped .status-orb__core {
+  background: #f8fafc;
+}
+
 .status-check {
   position: absolute;
   top: 43px;
@@ -209,6 +223,92 @@ select.control-shell:disabled {
 .copy-button:hover {
   border-color: #a8b7cb;
   color: var(--color-navy);
+}
+
+.call-diagnostics {
+  margin-top: 24px;
+  width: min(100%, 390px);
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.call-diagnostics__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.call-diagnostics__status strong {
+  color: var(--color-navy);
+  font-weight: 700;
+}
+
+.call-alert {
+  margin: 12px 0 0;
+  border-radius: 5px;
+  background: #fff7dd;
+  padding: 8px 10px;
+  color: #795b00;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.call-alert--error {
+  background: #fff0f0;
+  color: #a52525;
+}
+
+.cancel-call-button {
+  margin-top: 14px;
+  min-width: 132px;
+  border: 1px solid #cf3e3e;
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px 16px;
+  color: #b52e2e;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: background-color 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.cancel-call-button:hover:not(:disabled) {
+  background: #fff2f2;
+}
+
+.cancel-call-button--secondary {
+  border-color: #94a3b8;
+  color: #475569;
+}
+
+.cancel-call-button--secondary:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.cancel-call-button:focus-visible {
+  outline: 3px solid rgb(199 52 52 / 18%);
+  outline-offset: 2px;
+}
+
+.cancel-call-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.call-diagnostics__hint {
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 @keyframes call-pulse {

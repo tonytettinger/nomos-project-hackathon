@@ -5,9 +5,10 @@ import { formatDuration } from "../lib/format";
 
 type TranscriptAccordionProps = {
   transcript: TranscriptTurn[];
+  userLabel?: string;
 };
 
-export function TranscriptAccordion({ transcript }: TranscriptAccordionProps) {
+export function TranscriptAccordion({ transcript, userLabel = "Clerk" }: TranscriptAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -15,7 +16,7 @@ export function TranscriptAccordion({ transcript }: TranscriptAccordionProps) {
 
   const copyTranscript = async () => {
     const text = transcript
-      .map((turn) => `${turn.role === "agent" ? "AI agent" : "Clerk"}: ${turn.message}`)
+      .map((turn) => `${turn.role === "agent" ? "AI agent" : userLabel}: ${turn.message}`)
       .join("\n\n");
     await navigator.clipboard.writeText(text);
     setCopied(true);
@@ -54,7 +55,7 @@ export function TranscriptAccordion({ transcript }: TranscriptAccordionProps) {
                   <Icon className={`mt-0.5 h-4 w-4 ${isAgent ? "text-blue" : "text-green"}`} aria-hidden="true" />
                   <div>
                     <p className={`text-xs font-semibold ${isAgent ? "text-blue" : "text-green"}`}>
-                      {isAgent ? "AI agent" : turn.role === "user" ? "Clerk" : "System"}
+                      {isAgent ? "AI agent" : turn.role === "user" ? userLabel : "System"}
                     </p>
                     <p className="mt-1 text-sm leading-6 text-slate-700">{turn.message}</p>
                   </div>

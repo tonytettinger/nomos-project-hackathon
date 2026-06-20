@@ -1,6 +1,6 @@
-# Nomos Clearing Call Console
+# Nomos Agent Voice Test
 
-A local React console for selecting a synthetic clearing case, starting an ElevenLabs agent call through an imported Twilio number, and reviewing the transcript when the call finishes.
+A local React console for selecting a clearing case and talking to the real ElevenLabs agent through the laptop microphone and speakers. It uses ElevenLabs WebRTC directly, so no phone number or Twilio account is required.
 
 ## Run locally
 
@@ -10,25 +10,24 @@ cp .env.example .env
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. With empty ElevenLabs credentials, the API automatically uses a local mock call that exercises the complete interface without dialing a phone number.
+Open `http://127.0.0.1:5173` and allow microphone access when starting a voice test.
 
-## Connect ElevenLabs and Twilio
+## Connect ElevenLabs
 
-1. Import a Twilio number in the ElevenLabs Phone Numbers settings.
-2. Configure the Nomos follow-up agent and ensure its prompt uses the fixture variable names from `resources/call-cases.json`.
-3. Add the following values to `.env`:
+Add these server-only values to `.env`:
 
 ```dotenv
 ELEVENLABS_API_KEY=...
 ELEVENLABS_AGENT_ID=...
-ELEVENLABS_PHONE_NUMBER_ID=...
 ```
 
-Restart the local dev process. The server will then use ElevenLabs instead of the mock provider.
+The backend exchanges the API key for a short-lived WebRTC conversation token. The browser never receives the API key. The selected fixture is passed to the agent as dynamic variables when the session starts.
+
+`ELEVENLABS_PHONE_NUMBER_ID` and Twilio credentials are not required for browser voice testing.
 
 ## Add cases
 
-Add objects to `resources/call-cases.json`. A case must have a non-empty `id`, `case_title`, `lieferant`, `vnb_name`, and an 11-digit `malo_id`. Optional empty or unresolved values are omitted from the dynamic variables sent to ElevenLabs; the app never creates replacement case data.
+Add objects to `resources/call-cases.json`. A case must have a non-empty `id`, `case_title`, `lieferant`, `vnb_name`, and an 11-digit `malo_id`. Optional empty or unresolved values are omitted from the dynamic variables; the app never creates replacement case data.
 
 ## Checks
 
