@@ -1,0 +1,16 @@
+[
+  {
+    "id": "CASE-B",
+    "case_title": "Reminder / Nachfassen",
+    "lieferant": "Nomos GmbH",
+    "vnb_name": "Rheinland Netz AG",
+    "malo_id": "48820037615",
+    "lieferstelle": "Musterstraße 211, Köln-Ehrenfeld",
+    "zaehlernummer": "1EMH9000020002",
+    "anmeldung_datum": "02.06.2026",
+    "lieferbeginn": "01.08.2026",
+    "statustext": "APERAK am 03.06.2026 erhalten, aber keine Anmeldebestätigung; Frist verstrichen.",
+    "symptom": "We sent a registration, got the automated receipt, but never the confirmation, and the deadline has passed. Is it lost? Is it stuck?",
+    "goal": "Confirm the registration was received and is in process, learn why it stalled, get a Vorgangsnummer, and confirm no resubmission is needed."
+  }
+]

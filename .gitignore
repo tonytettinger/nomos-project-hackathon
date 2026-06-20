@@ -1,46 +1,7 @@
-# Dependencies
+.DS_Store
 node_modules/
-
-# Build outputs
 dist/
-build/
-.next/
-out/
-
-# Environment variables
 .env
 .env.local
-.env.*.local
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Testing / coverage
 coverage/
-.playwright/
-test-results/
-
-# Cache
-.cache/
-.parcel-cache/
-.vite/
-.turbo/
-.nx/
-
-# TypeScript
-*.tsbuildinfo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor files
-.vscode/
-.idea/
-
-# Temporary files
 *.log
-*.tmp
