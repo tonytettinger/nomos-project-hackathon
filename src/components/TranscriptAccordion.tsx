@@ -24,7 +24,7 @@ export function TranscriptAccordion({ transcript, userLabel = "Clerk" }: Transcr
   };
 
   return (
-    <section className="mx-auto mt-8 w-full max-w-3xl rounded-md border border-slate-200 bg-white">
+    <section className="result-accordion">
       <button
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
         type="button"

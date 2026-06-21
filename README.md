@@ -19,9 +19,13 @@ Add these server-only values to `.env`:
 ```dotenv
 ELEVENLABS_API_KEY=...
 ELEVENLABS_AGENT_ID=...
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-5.4-mini
 ```
 
 The backend exchanges the API key for a short-lived WebRTC conversation token. The browser never receives the API key. The selected fixture is passed to the agent as dynamic variables when the session starts.
+
+After the voice session ends, the backend sends the transcript to OpenAI through the Vercel AI SDK. The response is validated against the shared Zod schema and shown beside the transcript as a compact table. Unstated values remain `null` and appear as “Not stated.”
 
 `ELEVENLABS_PHONE_NUMBER_ID` and Twilio credentials are not required for browser voice testing.
 

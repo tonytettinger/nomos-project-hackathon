@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { callCaseSchema, e164Schema, toDynamicVariables } from "./callSchema";
+import {
+  callCaseSchema,
+  e164Schema,
+  structuredCallResultSchema,
+  toDynamicVariables,
+} from "./callSchema";
 
 const validCase = {
   id: "CASE-B",
@@ -42,5 +47,21 @@ describe("E.164 validation", () => {
 
   it.each(["030123456", "+49 30 123", "+012345678"])("rejects %s", (value) => {
     expect(e164Schema.safeParse(value).success).toBe(false);
+  });
+});
+
+describe("structured call result", () => {
+  it("accepts explicit nulls for information that was not stated", () => {
+    expect(
+      structuredCallResultSchema.parse({
+        outcome: "processing_confirmed",
+        vorgangsnummer: null,
+        stall_reason: null,
+        expected_resolution: "Tomorrow",
+        resubmission_required: false,
+        next_action: "Wait for the confirmation email",
+        summary: "Processing was confirmed for tomorrow.",
+      }),
+    ).toMatchObject({ outcome: "processing_confirmed", vorgangsnummer: null });
   });
 });

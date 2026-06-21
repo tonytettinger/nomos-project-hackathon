@@ -57,11 +57,55 @@ export type TelephonyStatus = z.infer<typeof telephonyStatusSchema>;
 
 export type CallStatus = z.infer<typeof callStatusSchema>;
 
-export type TranscriptTurn = {
-  role: "agent" | "user" | "system";
-  message: string;
-  timeInCallSeconds: number | null;
-};
+export const transcriptTurnSchema = z.object({
+  role: z.enum(["agent", "user", "system"]),
+  message: z.string().min(1).max(10_000),
+  timeInCallSeconds: z.number().nonnegative().nullable(),
+});
+
+export type TranscriptTurn = z.infer<typeof transcriptTurnSchema>;
+
+export const structuredCallResultSchema = z.object({
+  outcome: z
+    .enum(["processing_confirmed", "stall_explained", "unresolved"])
+    .describe("The clearest overall outcome explicitly supported by the conversation."),
+  vorgangsnummer: z
+    .string()
+    .max(200)
+    .nullable()
+    .describe("The explicitly stated Vorgangsnummer, otherwise null."),
+  stall_reason: z
+    .string()
+    .max(1_000)
+    .nullable()
+    .describe("The explicitly stated reason for the processing stall, otherwise null."),
+  expected_resolution: z
+    .string()
+    .max(1_000)
+    .nullable()
+    .describe("The explicitly stated processing or resolution timeframe, otherwise null."),
+  resubmission_required: z
+    .boolean()
+    .nullable()
+    .describe("Whether resubmission was explicitly required; null when not stated."),
+  next_action: z
+    .string()
+    .max(1_000)
+    .nullable()
+    .describe("The next action explicitly agreed during the conversation, otherwise null."),
+  summary: z
+    .string()
+    .min(1)
+    .max(1_000)
+    .describe("A concise factual summary containing no inferred or invented facts."),
+});
+
+export type StructuredCallResult = z.infer<typeof structuredCallResultSchema>;
+
+export const analyzeConversationSchema = z.object({
+  caseId: requiredText,
+  transcript: z.array(transcriptTurnSchema).min(1).max(200),
+});
 
 export type NormalizedCallDetails = {
   conversationId: string;

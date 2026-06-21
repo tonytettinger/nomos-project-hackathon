@@ -13,6 +13,7 @@ export function useBrowserVoiceSession() {
   const [isEnding, setIsEnding] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [sessionCaseId, setSessionCaseId] = useState<string | null>(null);
   const connectedAtRef = useRef<number | null>(null);
 
   const conversation = useConversation({
@@ -73,6 +74,7 @@ export function useBrowserVoiceSession() {
       setHasEnded(false);
       setIsEnding(false);
       setIsRequestingSession(true);
+      setSessionCaseId(callCase.id);
 
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
@@ -115,6 +117,7 @@ export function useBrowserVoiceSession() {
     isActive,
     isSpeaking: conversation.isSpeaking,
     phase,
+    sessionCaseId,
     startSession,
     transcript,
   };

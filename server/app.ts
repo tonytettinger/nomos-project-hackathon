@@ -1,15 +1,21 @@
 import cors from "cors";
 import express from "express";
 import { ZodError } from "zod";
-import { cancelCallSchema, initiateCallSchema, type CallCase } from "../shared/callSchema";
+import {
+  analyzeConversationSchema,
+  cancelCallSchema,
+  initiateCallSchema,
+  type CallCase,
+} from "../shared/callSchema";
 import { ProviderRequestError } from "./elevenLabsProvider";
-import type { CallProvider, VoiceSessionProvider } from "./types";
+import type { CallAnalysisProvider, CallProvider, VoiceSessionProvider } from "./types";
 
 export type AppDependencies = {
   cases: CallCase[];
   provider: CallProvider;
   providerMode: "elevenlabs" | "mock";
   voiceSessionProvider?: VoiceSessionProvider;
+  analysisProvider?: CallAnalysisProvider;
 };
 
 export class CaseNotFoundError extends Error {
@@ -26,7 +32,13 @@ export function resolveCallRequest(cases: CallCase[], body: unknown) {
   return { input, callCase };
 }
 
-export function createApp({ cases, provider, providerMode, voiceSessionProvider }: AppDependencies) {
+export function createApp({
+  cases,
+  provider,
+  providerMode,
+  voiceSessionProvider,
+  analysisProvider,
+}: AppDependencies) {
   const app = express();
 
   app.use(cors({ origin: true }));
@@ -38,6 +50,7 @@ export function createApp({ cases, provider, providerMode, voiceSessionProvider 
       providerMode,
       cancelEnabled: provider.canCancel,
       browserVoiceEnabled: Boolean(voiceSessionProvider),
+      analysisEnabled: Boolean(analysisProvider),
     });
   });
 
@@ -53,6 +66,22 @@ export function createApp({ cases, provider, providerMode, voiceSessionProvider 
       }
       const token = await voiceSessionProvider.createConversationToken();
       response.json({ token });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/conversations/analyze", async (request, response, next) => {
+    try {
+      if (!analysisProvider) {
+        response.status(503).json({ error: "OpenAI conversation analysis is not configured" });
+        return;
+      }
+      const input = analyzeConversationSchema.parse(request.body);
+      const callCase = cases.find((item) => item.id === input.caseId);
+      if (!callCase) throw new CaseNotFoundError();
+      const result = await analysisProvider.analyze({ callCase, transcript: input.transcript });
+      response.json({ result });
     } catch (error) {
       next(error);
     }

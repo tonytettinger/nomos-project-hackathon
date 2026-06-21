@@ -1,4 +1,9 @@
-import type { CallCase, NormalizedCallDetails } from "../shared/callSchema";
+import type {
+  CallCase,
+  NormalizedCallDetails,
+  StructuredCallResult,
+  TranscriptTurn,
+} from "../shared/callSchema";
 
 export type InitiateProviderCallInput = {
   toNumber: string;
@@ -30,4 +35,11 @@ export interface CallProvider {
 
 export interface VoiceSessionProvider {
   createConversationToken(): Promise<string>;
+}
+
+export interface CallAnalysisProvider {
+  analyze(input: {
+    callCase: CallCase;
+    transcript: TranscriptTurn[];
+  }): Promise<StructuredCallResult>;
 }

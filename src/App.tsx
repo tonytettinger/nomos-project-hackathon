@@ -4,7 +4,9 @@ import { AppHeader } from "./components/AppHeader";
 import { CallForm } from "./components/CallForm";
 import { CallStatusIndicator } from "./components/CallStatusIndicator";
 import { CaseSummary } from "./components/CaseSummary";
+import { StructuredResultAccordion } from "./components/StructuredResultAccordion";
 import { TranscriptAccordion } from "./components/TranscriptAccordion";
+import { useConversationAnalysis } from "./features/analysis/useConversationAnalysis";
 import { useBrowserVoiceSession } from "./features/voice/useBrowserVoiceSession";
 import type { CallCase } from "../shared/callSchema";
 
@@ -13,6 +15,7 @@ export default function App() {
   const [casesError, setCasesError] = useState<string | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState("");
   const voiceSession = useBrowserVoiceSession();
+  const analysis = useConversationAnalysis();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -34,6 +37,29 @@ export default function App() {
   );
   const canSubmit = Boolean(selectedCase && !voiceSession.isActive);
 
+  useEffect(() => {
+    if (
+      voiceSession.phase === "done" &&
+      voiceSession.sessionCaseId &&
+      voiceSession.transcript.length > 0 &&
+      analysis.status === "idle"
+    ) {
+      void analysis.run(voiceSession.sessionCaseId, voiceSession.transcript);
+    }
+  }, [
+    analysis.run,
+    analysis.status,
+    voiceSession.phase,
+    voiceSession.sessionCaseId,
+    voiceSession.transcript,
+  ]);
+
+  const startVoiceTest = () => {
+    if (!selectedCase) return;
+    analysis.reset();
+    void voiceSession.startSession(selectedCase);
+  };
+
   return (
     <div className="min-h-screen bg-canvas text-navy">
       <main className="mx-auto min-h-screen w-full max-w-[1180px] px-5 pb-12 sm:px-8 lg:px-10">
@@ -46,7 +72,7 @@ export default function App() {
             disabled={voiceSession.isActive}
             canSubmit={canSubmit}
             onCaseChange={setSelectedCaseId}
-            onSubmit={() => selectedCase && void voiceSession.startSession(selectedCase)}
+            onSubmit={startVoiceTest}
           />
           {casesError && <p className="mt-3 text-sm text-red">{casesError}</p>}
           <CaseSummary callCase={selectedCase} />
@@ -61,7 +87,14 @@ export default function App() {
         />
 
         {voiceSession.phase === "done" && (
-          <TranscriptAccordion transcript={voiceSession.transcript} userLabel="You" />
+          <div className="results-grid">
+            <TranscriptAccordion transcript={voiceSession.transcript} userLabel="You" />
+            <StructuredResultAccordion
+              status={analysis.status}
+              result={analysis.result}
+              error={analysis.error}
+            />
+          </div>
         )}
       </main>
     </div>

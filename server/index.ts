@@ -4,6 +4,7 @@ import { loadCases } from "./cases";
 import { ElevenLabsProvider } from "./elevenLabsProvider";
 import { ElevenLabsVoiceProvider } from "./elevenLabsVoiceProvider";
 import { MockCallProvider } from "./mockProvider";
+import { OpenAICallAnalysisProvider } from "./openAICallAnalysisProvider";
 import { TwilioCallClient } from "./twilioClient";
 
 const port = Number(process.env.API_PORT ?? 8787);
@@ -42,11 +43,19 @@ const voiceSessionProvider = hasAgentConfig
     })
   : undefined;
 
+const analysisProvider = process.env.OPENAI_API_KEY
+  ? new OpenAICallAnalysisProvider({
+      apiKey: process.env.OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+    })
+  : undefined;
+
 createApp({
   cases,
   provider,
   providerMode: hasProviderConfig ? "elevenlabs" : "mock",
   voiceSessionProvider,
+  analysisProvider,
 }).listen(port, "127.0.0.1", () => {
   console.log(
     `Nomos call API listening on http://127.0.0.1:${port} (${hasProviderConfig ? "ElevenLabs" : "mock"}, cancellation ${provider.canCancel ? "enabled" : "disabled"})`,

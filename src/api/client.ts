@@ -1,4 +1,9 @@
-import type { CallCase, NormalizedCallDetails } from "../../shared/callSchema";
+import type {
+  CallCase,
+  NormalizedCallDetails,
+  StructuredCallResult,
+  TranscriptTurn,
+} from "../../shared/callSchema";
 
 type InitiateCallResponse = {
   conversationId: string;
@@ -11,6 +16,7 @@ export type ApiHealth = {
   providerMode: "elevenlabs" | "mock";
   cancelEnabled: boolean;
   browserVoiceEnabled: boolean;
+  analysisEnabled: boolean;
 };
 
 async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
@@ -38,6 +44,15 @@ export async function fetchConversationToken(): Promise<string> {
     method: "POST",
   });
   return payload.token;
+}
+
+export async function analyzeConversation(caseId: string, transcript: TranscriptTurn[]) {
+  const payload = await requestJson<{ result: StructuredCallResult }>("/api/conversations/analyze", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ caseId, transcript }),
+  });
+  return payload.result;
 }
 
 export async function initiateCall(caseId: string, toNumber: string): Promise<InitiateCallResponse> {
