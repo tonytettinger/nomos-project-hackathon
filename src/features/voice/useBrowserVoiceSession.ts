@@ -6,6 +6,13 @@ import { fetchConversationToken } from "../../api/client";
 
 export type BrowserVoicePhase = "ready" | "starting" | "connected" | "ending" | "done" | "failed";
 
+const AUTO_END_AFTER_SPEECH_MS = 800;
+const AUTO_END_FALLBACK_MS = 8_000;
+const FAREWELL_PATTERN =
+  /(?:\bgoodbye\b|\bbye\b|auf wiedersehen|tschüss|have a (?:good|great|nice) day|schönen tag noch)/iu;
+const NON_FINAL_FAREWELL_PATTERN =
+  /\b(?:before|until|if|when)\b.{0,60}(?:\bgoodbye\b|\bbye\b|auf wiedersehen|tschüss)/iu;
+
 export function useBrowserVoiceSession() {
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +21,7 @@ export function useBrowserVoiceSession() {
   const [hasEnded, setHasEnded] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [sessionCaseId, setSessionCaseId] = useState<string | null>(null);
+  const [autoEndRequested, setAutoEndRequested] = useState(false);
   const connectedAtRef = useRef<number | null>(null);
 
   const conversation = useConversation({
@@ -23,6 +31,7 @@ export function useBrowserVoiceSession() {
       setHasEnded(false);
     },
     onDisconnect: (details) => {
+      setAutoEndRequested(false);
       setIsRequestingSession(false);
       setIsEnding(false);
       if (details.reason === "error") {
@@ -47,6 +56,9 @@ export function useBrowserVoiceSession() {
             : Math.max(0, Math.floor((Date.now() - connectedAtRef.current) / 1_000)),
       };
       setTranscript((current) => appendDistinctTurn(current, turn));
+      if (role === "agent" && isFarewellMessage(message)) {
+        setAutoEndRequested(true);
+      }
     },
   });
 
@@ -66,6 +78,19 @@ export function useBrowserVoiceSession() {
     return () => window.clearInterval(interval);
   }, [isActive]);
 
+  useEffect(() => {
+    if (!autoEndRequested || conversation.status !== "connected") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setAutoEndRequested(false);
+      setIsEnding(true);
+      conversation.endSession();
+    }, conversation.isSpeaking ? AUTO_END_FALLBACK_MS : AUTO_END_AFTER_SPEECH_MS);
+    return () => window.clearTimeout(timeout);
+  }, [autoEndRequested, conversation.endSession, conversation.isSpeaking, conversation.status]);
+
   const startSession = useCallback(
     async (callCase: CallCase) => {
       setError(null);
@@ -75,6 +100,7 @@ export function useBrowserVoiceSession() {
       setIsEnding(false);
       setIsRequestingSession(true);
       setSessionCaseId(callCase.id);
+      setAutoEndRequested(false);
 
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
@@ -127,4 +153,9 @@ export function appendDistinctTurn(current: TranscriptTurn[], next: TranscriptTu
   const previous = current.at(-1);
   if (previous?.role === next.role && previous.message === next.message) return current;
   return [...current, next];
+}
+
+export function isFarewellMessage(message: string) {
+  const normalized = message.trim().toLocaleLowerCase().replace(/[.!?…]+$/u, "").trim();
+  return FAREWELL_PATTERN.test(normalized) && !NON_FINAL_FAREWELL_PATTERN.test(normalized);
 }

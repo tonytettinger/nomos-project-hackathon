@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   callCaseSchema,
   e164Schema,
+  formatMaloForSpeech,
   structuredCallResultSchema,
   toDynamicVariables,
 } from "./callSchema";
@@ -34,9 +35,17 @@ describe("call case validation", () => {
       case_title: "Reminder / Nachfassen",
       lieferant: "Nomos GmbH",
       vnb_name: "Rheinland Netz AG",
-      malo_id: "48820037615",
+      malo_id:
+        "4 -- -- -- -- -- -- -- -- 8 -- -- -- -- -- -- -- -- 8 -- -- -- -- -- -- -- -- 2 -- -- -- -- -- -- -- -- 0 -- -- -- -- -- -- -- -- 0 -- -- -- -- -- -- -- -- 3 -- -- -- -- -- -- -- -- 7 -- -- -- -- -- -- -- -- 6 -- -- -- -- -- -- -- -- 1 -- -- -- -- -- -- -- -- 5",
+      malo_id_raw: "48820037615",
       lieferstelle: "Musterstraße 211, Köln-Ehrenfeld",
     });
+  });
+
+  it("adds a long speech pause between every MaLo digit", () => {
+    expect(formatMaloForSpeech("123")).toBe(
+      "1 -- -- -- -- -- -- -- -- 2 -- -- -- -- -- -- -- -- 3",
+    );
   });
 });
 

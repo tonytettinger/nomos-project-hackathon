@@ -1,16 +1,30 @@
 [
   {
-    "id": "CASE-B",
-    "case_title": "Reminder / Nachfassen",
+    "id": "CASE-C",
+    "case_title": "Klärung / Stammdatenabweichung",
     "lieferant": "Nomos GmbH",
     "vnb_name": "Rheinland Netz AG",
-    "malo_id": "48820037615",
-    "lieferstelle": "Musterstraße 211, Köln-Ehrenfeld",
-    "zaehlernummer": "1EMH9000020002",
-    "anmeldung_datum": "02.06.2026",
+    "malo_id": "50218473926",
+    "lieferstelle": "Venloer Straße 84, Köln-Ehrenfeld",
+    "zaehlernummer": "1EMH9000020147",
+    "anmeldung_datum": "05.06.2026",
     "lieferbeginn": "01.08.2026",
-    "statustext": "APERAK am 03.06.2026 erhalten, aber keine Anmeldebestätigung; Frist verstrichen.",
-    "symptom": "We sent a registration, got the automated receipt, but never the confirmation, and the deadline has passed. Is it lost? Is it stuck?",
-    "goal": "Confirm the registration was received and is in process, learn why it stalled, get a Vorgangsnummer, and confirm no resubmission is needed."
+    "statustext": "APERAK am 06.06.2026 erhalten; Rückmeldung weist auf mögliche Stammdatenabweichung hin, aber keine eindeutige Ablehnung oder Bestätigung.",
+    "symptom": "We received a technical response, but it is unclear whether the registration is blocked because of a mismatch in the meter number or address data.",
+    "goal": "Clarify which master data does not match, confirm whether the registration is still active, get a Vorgangsnummer, and learn what exact correction is needed."
+  },
+  {
+    "id": "CASE-D",
+    "case_title": "Lieferbeginn naht / Status dringend",
+    "lieferant": "Nomos GmbH",
+    "vnb_name": "Westfalen Verteilnetz GmbH",
+    "malo_id": "61190384572",
+    "lieferstelle": "Hohenzollernring 37, Münster",
+    "zaehlernummer": "DE0010678924510000000000003214567",
+    "anmeldung_datum": "10.06.2026",
+    "lieferbeginn": "15.07.2026",
+    "statustext": "Anmeldung versendet und APERAK erhalten; bisher keine finale Anmeldebestätigung, Lieferbeginn ist in Kürze.",
+    "symptom": "The start date is approaching, but we still do not have the final confirmation. We need to know if supply can start as planned.",
+    "goal": "Confirm whether the registration will be accepted in time, get the current processing status and Vorgangsnummer, and clarify whether any action is required from Nomos."
   }
 ]

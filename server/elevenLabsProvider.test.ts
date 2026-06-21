@@ -40,7 +40,14 @@ describe("ElevenLabsProvider", () => {
       agent_id: "agent-1",
       agent_phone_number_id: "phone-1",
       to_number: "+493012345678",
-      conversation_initiation_client_data: { dynamic_variables: callCase },
+      conversation_initiation_client_data: {
+        dynamic_variables: {
+          ...callCase,
+          malo_id:
+            "4 -- -- -- -- -- -- -- -- 8 -- -- -- -- -- -- -- -- 8 -- -- -- -- -- -- -- -- 2 -- -- -- -- -- -- -- -- 0 -- -- -- -- -- -- -- -- 0 -- -- -- -- -- -- -- -- 3 -- -- -- -- -- -- -- -- 7 -- -- -- -- -- -- -- -- 6 -- -- -- -- -- -- -- -- 1 -- -- -- -- -- -- -- -- 5",
+          malo_id_raw: "48820037615",
+        },
+      },
     });
   });
 

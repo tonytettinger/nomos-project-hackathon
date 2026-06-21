@@ -125,10 +125,23 @@ export const cancelCallSchema = z.object({
 const unresolvedValuePattern = /^(?:null|undefined|n\/a|\{\{.*\}\}|\[.*\])$/i;
 
 export function toDynamicVariables(callCase: CallCase): Record<string, string> {
-  return Object.fromEntries(
+  const variables = Object.fromEntries(
     Object.entries(callCase).filter((entry): entry is [string, string] => {
       const value = entry[1];
       return typeof value === "string" && value.trim().length > 0 && !unresolvedValuePattern.test(value.trim());
     }),
   );
+
+  return {
+    ...variables,
+    malo_id_raw: callCase.malo_id,
+    malo_id: formatMaloForSpeech(callCase.malo_id),
+  };
+}
+
+export function formatMaloForSpeech(maloId: string) {
+  if (!/^\d+$/.test(maloId)) {
+    throw new Error("MaLo must contain digits only");
+  }
+  return [...maloId].join(" -- -- -- -- -- -- -- -- ");
 }
